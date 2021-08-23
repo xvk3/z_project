@@ -18,53 +18,31 @@ main proc
   ;save the base address (kernel32)
   mov r15, [r8+30h]
 
-  ;VirtualAlloc
-  mov r10, 0be0d6d6a19fbbf49h		;qwHash
+  ;GetCurrentProcessorNumber
+  mov r10, 11046ac467aef24fh     ;qwHash
   mov r11, r15
-  xor r12, r12                  ;(is LoadLibrary needed?)
-  xor r13, r13                  ;(needs clearing)
+  call funcCallFunctionByHash   ;	
+  mov rdx, rax                  ; ProcessorNumber
+  and rdx, 00000111b
+  shl rdx, 08h
+  ;dwSize - (ProcessorNumber & 00000111b) << 08 
+
+  ;VirtualAlloc
+  mov r10, 0be0d6d6a19fbbf49h		;utilHash(VirtualAlloc)
+  mov r11, r15
   xor rcx, rcx                  ;lpAddress - NULL
-  mov rdx, 1000h                ;dwSize - 1000h (4096 bytes)
   mov r8, 3000h                 ;flAllocationTYpe - MEM_COMMIT | MEM_RESERVE - 3000h
   mov r9, 40h                   ;flProtect - PAGE_EXECUTE_READWRITE - 40h
   call funcCallFunctionByHash		;
   nop
 
-  ; *a forwarded function
-  ;GetCurrentProcessorNumber
-  mov r10, 11046ac467aef24fh     ;qwHash
-  mov r11, r15
-  call funcCallFunctionByHash   ;
-  nop
-	
   ;ExitProcess
-  mov r10, 0bf82c4b790c612ceh		;qwHash
+  mov r10, 0bf82c4b790c612ceh		;utilHash(ExitProcess)
   mov r11, r15
-  mov rcx, rax              ;uExitCode
+  mov rcx, rax                  ;uExitCode
   call funcCallFunctionByHash		;
   nop
 
 main endp
-
-utilHash proc
-	;rcx - null terminated string
-	push rcx
-	push rdx
-
-	mov rax, 5381d
-	hl:
-		mov rdx, rax
-		shl rax, 5
-		add rax, rdx
-		xor al, [rcx]
-		inc rcx
-	cmp byte ptr[rcx], 00h
-	jne short hl		 
-
-	pop rdx
-	pop rcx
-	ret
-
-utilHash endp
 
 END

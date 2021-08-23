@@ -13,11 +13,11 @@ funcCallFunctionByHash proc
   push r8
   push r9
   
-  push r12
-  push r13
-  push r14
-  push r15
-  push rbp
+  push r12                        ;used for in _CallLoadLibrary for storing the length of the dll
+  push r13                        ;LoadLibraryFlag - control flog flag
+  push r14                        ;VirtualSize
+  push r15                        ;VirtualAddress
+  push rbp                        
 
   xor r13, r13
 
@@ -78,30 +78,29 @@ funcCallFunctionByHash proc
   _NotForwarded:
     add rax, r11                  ;ImageBaseAddress + AddressOfFunctions[FunctionOrdinal*04h]
     test r13, r13                 ;check for the LoadLibraryFlag
-    jnz _CallLoadLibrary
+  jnz _CallLoadLibrary
 
 	;pop registers used by function (for variables on the stack)
-    pop rbp                       
-    pop r15
-    pop r14
+  pop rbp                       
+  pop r15
+  pop r14
 	pop r13
 	pop r12
 
 	;pop parameters into registers for looked up function
-    pop r9
-    pop r8
-    pop rdx
-    pop rcx
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
 
-    sub rsp, 20h
-    call rax
-    add rsp, 20h
-    ret
+  sub rsp, 20h
+  call rax
+  add rsp, 20h
+  ret
 
   _Forwarded:
-   
-    add rax, r11          ;ImageBaseAddress + AddressOfFunctions[FunctionOrdinal*04h]
-    mov rsi, rax          ;rsi is used ScanFor2E
+    add rax, r11                  ;ImageBaseAddress + AddressOfFunctions[FunctionOrdinal*04h]
+    mov rsi, rax                  ;rsi is used ScanFor2E
     _LookupLoadLibrary:
       ;TODO: check if requested dll is already present in _PED_LDR_DATA (need to write a UNICODE_STRING hasher)
       mov r9, qword ptr gs:[60h]  ;PEB
@@ -115,12 +114,11 @@ funcCallFunctionByHash proc
       mov r11, [r9+30h]
 
       ;qwLoadLibraryHash
-      mov r13, 00b9a3b50901ed9addh;set qwHash
-	  mov r10, r13                ;i was xchg'ing it before (any reason to save the origin hash??)
+      mov r13, 00b9a3b50901ed9addh;set qwHash / LoadLibraryFlag
+      mov r10, r13                ;i was xchg'ing it before (any reason to save the origin hash??)
       jmp _ParseDllHeader
 
   _CallLoadLibrary:
-    
     ;if CallLoadLibrary is jumped to it means that a forwarded function was discovered and the code has ALREADY
     ;  1. looked up the address of LoadLibrary - which is now in rax
     ;  2. initialised rsi to point to the forwarder string
@@ -163,25 +161,25 @@ funcCallFunctionByHash proc
     ;r12 is the size of stack space reserved by dll name
     ;r13 is the hash of the forwarded function
 
-	;call LoadLibraryA 
-    mov rcx, rsp	              ;lpLibFileName
-	sub rsp, 20h                  ;reserve shadow space for four registers (20h = 08h * 04h)
+	  ;call LoadLibraryA 
+    mov rcx, rsp	                ;lpLibFileName
+    sub rsp, 20h                  ;reserve shadow space for four registers (20h = 08h * 04h)
     call rax                      ;LoadLibraryA
     add rsp, 20h                  ;restore stack
     add rsp, r12                  ;remove lpLibFileName / dll name from stack
 
-	;prepare registers
+	  ;prepare registers
     mov r11, rax                  ;rax is the return value of LoadLibrary -> ImageBaseAddress
     mov r10, r13                  ;LookupLoadLibrary exchanges r10 and r13, put the original qwHash back into r10
     xor r13, r13                  ;clear qwLoadLibraryFlag so we don't attempt to call LoadLibrary again
-    jmp _ParseDllHeader
+  jmp _ParseDllHeader
 
   _Failed:
     pop rbp                       ;pop registers used by function
     pop r15
     pop r14
-	pop r13
-	pop r12
+	  pop r13
+	  pop r12
 
     pop r9                        ;pop parameters to looked up function
     pop r8
