@@ -25,6 +25,7 @@ main proc
   mov rdx, rax                  ; ProcessorNumber
   and rdx, 00000111b
   shl rdx, 08h
+  mov r14, rdx
   ;dwSize - (ProcessorNumber & 00000111b) << 08 
 
   ;VirtualAlloc
@@ -39,7 +40,7 @@ main proc
   ;ExitProcess
   mov r10, 0bf82c4b790c612ceh		;utilHash(ExitProcess)
   mov r11, r15
-  mov rcx, rax                  ;uExitCode
+  mov rcx, r14                  ;uExitCode
   call funcCallFunctionByHash		;
   nop
 

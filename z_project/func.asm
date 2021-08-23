@@ -226,7 +226,9 @@ funcCallSectionPackage proc
   add rax, r8                     ;add ImageBaseAddress
   pop rbx
   call rax
-  ret
+
+  _Failure:
+    ret
 
 funcCallSectionPackage endp
 
