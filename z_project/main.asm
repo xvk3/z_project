@@ -32,19 +32,15 @@ main proc
 
   ; *a forwarded function
   ;GetCurrentProcessorNumber
-  mov r10 11046ac467aef24fh     ;qwHash
+  mov r10, 11046ac467aef24fh     ;qwHash
   mov r11, r15
-  xor r12, r12
-  xor r13, r13
   call funcCallFunctionByHash   ;
   nop
 	
   ;ExitProcess
   mov r10, 0bf82c4b790c612ceh		;qwHash
   mov r11, r15
-  xor r12, r12
-  xor r13, r13
-  mov rcx, 87h					;uExitCode
+  mov rcx, rax              ;uExitCode
   call funcCallFunctionByHash		;
   nop
 
