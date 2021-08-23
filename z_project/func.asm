@@ -84,10 +84,10 @@ funcCallFunctionByHash proc
   pop rbp                       
   pop r15
   pop r14
-	pop r13
-	pop r12
+  pop r13
+  pop r12
 
-	;pop parameters into registers for looked up function
+  ;pop parameters into registers for looked up function
   pop r9
   pop r8
   pop rdx
@@ -161,14 +161,14 @@ funcCallFunctionByHash proc
     ;r12 is the size of stack space reserved by dll name
     ;r13 is the hash of the forwarded function
 
-	  ;call LoadLibraryA 
-    mov rcx, rsp	                ;lpLibFileName
+    ;call LoadLibraryA 
+    mov rcx, rsp                  ;lpLibFileName
     sub rsp, 20h                  ;reserve shadow space for four registers (20h = 08h * 04h)
     call rax                      ;LoadLibraryA
     add rsp, 20h                  ;restore stack
     add rsp, r12                  ;remove lpLibFileName / dll name from stack
 
-	  ;prepare registers
+    ;prepare registers
     mov r11, rax                  ;rax is the return value of LoadLibrary -> ImageBaseAddress
     mov r10, r13                  ;LookupLoadLibrary exchanges r10 and r13, put the original qwHash back into r10
     xor r13, r13                  ;clear qwLoadLibraryFlag so we don't attempt to call LoadLibrary again
@@ -178,8 +178,8 @@ funcCallFunctionByHash proc
     pop rbp                       ;pop registers used by function
     pop r15
     pop r14
-	  pop r13
-	  pop r12
+    pop r13
+    pop r12
 
     pop r9                        ;pop parameters to looked up function
     pop r8
