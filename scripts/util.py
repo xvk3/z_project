@@ -17,6 +17,7 @@ class Util:
 
 if __name__ == "__main__":
   if len(sys.argv) > 1:
+    util = Util()
     for s in range(1, len(sys.argv)):
-      print(format(utilHash(sys.argv[s]), "x").zfill(16) + " : " + sys.argv[s])
+      print(format(util.utilHash(sys.argv[s]), "x").zfill(16) + " : " + sys.argv[s])
 
