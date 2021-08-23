@@ -188,4 +188,46 @@ funcCallFunctionByHash proc
     ret
 funcCallFunctionByHash endp
 
+;funcCallSectionPackage
+;            r10 - dwSectionName (probably should hash this)
+funcCallSectionPackage proc
+
+  push rbx
+  mov rdx, qword ptr gs:[50h]     ;PEB
+  mov rax, qword ptr[rdx+10h]     ;PEB->ImageBaseAddress
+  mov rcx, rax
+
+  ;analyse PE sections
+  xor r9, r9
+  mov r8d, dword ptr[rax+3ch]     ;IMAGE_DOS_HEADER->e_lfanew
+  add r8, rax                     ;IMAGE_DOS_HEADER->e_lfanew + ImageBaseAddress
+  mov bx, word ptr[r8+06h]        ;IMAGE_NT_HEADER->IMAGE_FILE_HEADER->NumberOfSections
+  mov r9w, word ptr[r8+14h]       ;IMAGE_NT_HEADER->IMAGE_FILE_HEADER->SizeOfOptionalHeader
+  lea rax, [r8+r9+18h]            ;IMAGE_NT_HEADER + SizeOfOptionalHeader + sizeof(IMAGE_NT_HEADER)  
+  ;rax = IMAGE_SECTION_HEADER
+
+  inc bx                          ;clear counter (for number of sections)
+  xor rdx, rdx                    ;offset accumulator
+  mov r9, rax
+
+  _ForEachSection:
+    lea rax, [r9+rdx]  
+    dec bx
+  je _Failure
+
+    mov r8d, dword ptr[rax]       ;IMAGE_SECTION_HEADER->Name[4]
+    add rdx, 28h                  ;sizeof(IMAGE_SECTION_HEADER) ???
+    cmp r8d, r10d
+  jne _ForEachSection
+
+  mov r8, rcx
+  ;mov ecx, dword ptr[rax+08h]     ;IMAGE_SECTION_HEADER->Misc.VirtualSize
+  mov eax, dword ptr[rax+0Ch]     ;IMAGE_SECTION_HEADER->VirtualAddress
+  add rax, r8                     ;add ImageBaseAddress
+  pop rbx
+  call rax
+  ret
+
+funcCallSectionPackage endp
+
 END
