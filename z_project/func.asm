@@ -1,25 +1,25 @@
 func segment read execute
 
-;funcCallFunctionByHash    - calls function by passed hash
-;            r10 - qwHash
-;            r11 - qwImageBaseAddress / lpDllName
+;funcLookupFunctionByHash    - calls function by passed hash
+;            rcx - qwHash
+;            rdx - qwImageBaseAddress
 ;          returns - function return value
 ;          remarks - 20h of shadow space is handled
-funcCallFunctionByHash proc
+funcLookupFunctionByHash proc
 
-  ;save function parameters
-  push rcx
-  push rdx
-  push r8
-  push r9
-  
+  ;perserve registers
+  ; TODO can any of these be coded out?
+  push r10                        ;qwHash
+  push r11                        ;ImageBaseAddress
   push r12                        ;used for in _CallLoadLibrary for storing the length of the dll
   push r13                        ;LoadLibraryFlag - control flog flag
   push r14                        ;VirtualSize
   push r15                        ;VirtualAddress
-  push rbp                        
 
+  mov r11, rdx
+  mov r10, rcx
   xor r13, r13
+
 
   _ParseDllHeader:
   mov eax, dword ptr [r11+3ch]	  ;IMAGE_DOS_HEADER->e_lfanew
@@ -80,22 +80,13 @@ funcCallFunctionByHash proc
     test r13, r13                 ;check for the LoadLibraryFlag
   jnz _CallLoadLibrary
 
-	;pop registers used by function (for variables on the stack)
-  pop rbp                       
+  ;pop registers used by function (for variables on the stack)
   pop r15
   pop r14
   pop r13
   pop r12
-
-  ;pop parameters into registers for looked up function
-  pop r9
-  pop r8
-  pop rdx
-  pop rcx
-
-  sub rsp, 20h
-  call rax
-  add rsp, 20h
+  pop r11
+  pop r10
   ret
 
   _Forwarded:
@@ -175,18 +166,16 @@ funcCallFunctionByHash proc
   jmp _ParseDllHeader
 
   _Failed:
-    pop rbp                       ;pop registers used by function
+    ;pop registers used by function
     pop r15
     pop r14
     pop r13
     pop r12
-
-    pop r9                        ;pop parameters to looked up function
-    pop r8
-    pop rdx
-    pop rcx
+	pop r11
+	pop r10
     ret
-funcCallFunctionByHash endp
+
+funcLookupFunctionByHash endp
 
 ;funcCallSectionPackage
 ;            r10 - dwSectionName (probably should hash this)
