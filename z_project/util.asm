@@ -155,16 +155,14 @@ utilExplodeSeed proc
   ; destination = source1 * source2
   imul rax, rcx, 41C64E6Dh
   add rax, 3039h
-  
+  shr rax, 10h    ; divide rax by 2^16 (65,536)
+  xor rdx, rdx    ; clear RDX
+  mov rcx, 8000h  ; 32,768
   ; div
   ; In 64-bit mode when REX.W is applied, the instruction divides
   ; the unsigned value in RDX:RAX by the source operand and stores
   ; the quotient in RAX, the remainder in RDX
-  mov rcx, 10000h ; 65,536
-  xor rdx, rdx    ; clear RDX (not using RDX:RAX, only RAX)
-  div rcx    ;
-  xor rdx, rdx    ; clear RDX again
-  mov rcx, 8000h  ; 32,768
+  ;
   div rcx
   mov rax, rdx    ; return the remainder
   ret
