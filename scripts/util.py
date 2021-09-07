@@ -18,6 +18,18 @@ class Util:
       for index in range(0, len(doc)):
         f.write(doc[index])
 
+
+  def replaceTabs(self, filename):
+    doc = []
+    with open(filename, "r", encoding="utf-8") as f:
+      for line in f:
+        doc.append(line)
+    for index in range(0, len(doc)):
+      doc[index].replace("\t", 2)
+    with open(filename + ".replaceTabs", "w", encodinv="utf-8") as f:
+      for index in range(0, len(doc)):
+        f.write(doc[index])
+
   def utilHash(self, s):
     rax = 5381
     for c in s:
