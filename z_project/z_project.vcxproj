@@ -128,7 +128,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <MASM Include="dbg.asm" />
+    <MASM Include="func.asm" />
     <MASM Include="main.asm" />
+    <MASM Include="util.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="header.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

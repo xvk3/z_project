@@ -18,5 +18,19 @@
     <MASM Include="main.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="func.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="util.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="dbg.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="header.inc">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
