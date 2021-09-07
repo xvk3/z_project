@@ -55,6 +55,10 @@ utilHashSuper endp
 ;          remarks - returns qword in rax
 utilRand proc
 
+  push rcx
+  push rdx
+  push r8
+
   xor eax, eax
   inc ax
   cpuid
@@ -62,25 +66,29 @@ utilRand proc
   jne _NotSupported
 
   rdrand eax
+  ; check CF instead of eax, eax
   test eax, eax
   jz _NotSupported
 
+  ; rdrand is supported and worked
+  ; ret
+
   _NotSupported:
     rdtsc
-    mov cx, ax
+    rol rdx, 04h
+    imul rax, rdx, 7FFFFFEDh
+    and rax, 0c4fb1e6h
+    movzx r8, ax
     _Loop:
-      ; TODO: fix the explosion algo
-      ; use utilExplodeSeed in a loop?
-      ; need a verison of utilExplodeSeed that returns qword
-      rol rdx, 01h
-      add rax, rdx
-      shl rax, 07h
-      ror rax, 02h
-      xor rax, rdx
-      mul rax
-      and rax, 0c4fb1e6h
-      dec cx
+      call utilExplodeSeed
+      mov rcx, rdx
+      dec r8
     jnz _Loop
+  mov rax, rdx
+
+  pop r8
+  pop rdx
+  pop rcx
   ret
 
 utilRand endp
@@ -105,13 +113,16 @@ utilDecode endp
 ;           r8  - qwHash
 utilEncode proc
 
+  push rcx
+  push rdx
+  push r8
+  push r9
+
   mov r9, rcx
-  lea r10, [rcx+rdx]
 
   _Loop:
-
+    ; load byte from lpBuffer into al
     movzx rax, byte ptr[r9]
-
     ; imul
     ; One-operand form: imul [source]
     ; RDX:RAX = RAX * source
@@ -122,11 +133,15 @@ utilEncode proc
     mov rcx, rax
     call utilQwordToAsciiAZ
     mov byte ptr[r9], al   
- 
-    inc r9
-    cmp r9, r10
-  jne _Loop
 
+    inc r9 
+    dec rdx
+  jnz _Loop
+
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
   ret
 
 utilEncode endp
@@ -136,12 +151,16 @@ utilEncode endp
 ;           rcx - qwSeed
 utilQwordToAsciiAZ proc
 
+  push rcx
+  push rdx
   mov rax, rcx
   xor rdx, rdx
   mov rcx, 1Ah    ; 26d
   div rcx         ; qwSeed / 26
   mov rax, rdx    ; remainder 0-25 
   add rax, 41h    ; remainder += 65d
+  pop rdx
+  pop rcx
   ret
 
 utilQwordToAsciiAZ endp
@@ -150,6 +169,16 @@ utilQwordToAsciiAZ endp
 ;           rcx - qwSeed
 utilExplodeSeed proc
 
+  push rcx
+  push rdx
+  ; ulong x_rand(ulong qwSeed) {
+  ;   ulong rand = seed;
+  ;   rand = rand * 1103515245;
+  ;   rand = rand + 12345;
+  ;   rand = rand / 65536;
+  ;   rand = rand % 32768;
+  ;   return rand;
+  ; }
   ; imul
   ; Three-operand form: imul [destinaton], [source1], [source2]
   ; destination = source1 * source2
@@ -165,6 +194,9 @@ utilExplodeSeed proc
   ;
   div rcx
   mov rax, rdx    ; return the remainder
+
+  pop rdx
+  pop rcx
   ret
 
 utilExplodeSeed endp
