@@ -117,8 +117,10 @@ utilEncode proc
   push rdx
   push r8
   push r9
+  push r10
 
   mov r9, rcx
+  lea r10, [rcx+rdx]
 
   _Loop:
     ; load byte from lpBuffer into al
@@ -135,9 +137,10 @@ utilEncode proc
     mov byte ptr[r9], al   
 
     inc r9 
-    dec rdx
-  jnz _Loop
+    cmp r9, r10
+  jne _Loop
 
+  pop r10
   pop r9
   pop r8
   pop rdx
