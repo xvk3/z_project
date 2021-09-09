@@ -93,19 +93,58 @@ utilRand proc
 
 utilRand endp
 
-
 ;utilDecode
 ;           rcx - lpBuffer
 ;           rdx - qwLength
 ;           r8  - qwHash
 utilDecode proc
 
-  ; loop over A-Z
-  ;  encode each char checking output against lpBuffer
-  ;  if an encoded match is found the plaintext is simply the char
-  ;  passed to encode
+  ; loop over buffer
+  ;   loop over A-Z
+  ;     encode each char checking output against lpBuffer
+  ;     if an encoded match is found the plaintext is simply the char
+  ;     passed to encode
+
+  push rcx
+  push rdx
+  push r8
+  push r9
+  push r10
+
+
+  pop r10
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
+  ret
 
 utilDecode endp
+
+utilDecode_full proc
+
+  ; loop over buffer
+  ;   loop over 0-255
+  ;     encode each char checking output against lpBuffer
+  ;     if an encoded match is found the plaintext is simply the char
+  ;     passed to encode
+
+  push rcx
+  push rdx
+  push r8
+  push r9
+  push r10
+
+
+  pop r10
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
+  ret
+
+
+utilDecode_full endp
 
 ;utilEncode
 ;           rcx - lpBuffer
@@ -125,6 +164,7 @@ utilEncode proc
   _Loop:
     ; load byte from lpBuffer into al
     movzx rax, byte ptr[r9]
+
     ; imul
     ; One-operand form: imul [source]
     ; RDX:RAX = RAX * source
@@ -148,6 +188,51 @@ utilEncode proc
   ret
 
 utilEncode endp
+
+;utilEncode_full
+;           rcx - lpBuffer
+;           rdx - qwLength
+;           r8  - qwHash
+utilEncode_full proc
+
+  push rcx
+  push rdx
+  push r8
+  push r9
+  push r10
+
+  mov r9, rcx
+  lea r10, [rcx+rdx]
+
+  _Loop:
+    ; load byte from lpBuffer into al
+    movzx rax, byte ptr[r9]
+
+    ; it's necessary to increment rax since it can be 0x00
+    inc rax
+    ; rax can be 0x01 => 0x100 (0xFF + 1)
+
+    ; imul
+    ; One-operand form: imul [source]
+    ; RDX:RAX = RAX * source
+    imul r8
+
+    mov rcx, rax
+    call utilExplodeSeed
+    mov byte ptr[r9], al 
+
+    inc r9
+    cmp r9, r10
+  jne _Loop
+
+  pop r10
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
+  ret
+
+utilEncode_full endp
 
 ;utilQwordToAsciiAZ
 ; TODO: make a version of this that takes the divisor as a parameter

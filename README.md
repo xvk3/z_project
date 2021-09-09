@@ -7,14 +7,16 @@
 
 ### util.asm
  - [ ] bijection procedure to find seeds
- - [ ] procedures to split 0-X into 0-Y, (Y+Z)-Q, etc
- - [ ] convert az.c
+ - [ ] convert az.c (need to develop utilDecode & utilDecode_full)
 
 ### func.asm
 
 ### dbg.asm
  - [ ] command line parameters
  - [ ] console functions
+
+### ilde.asm
+ - [ ] detect "push ret" control flow modifier
 
 ### ideas
  - [ ] test procedures

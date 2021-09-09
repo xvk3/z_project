@@ -88,6 +88,40 @@ main proc
   call rax                      ;WriteConsoleA
   add rsp, 30h
 
+
+  ;test is_jmp
+  lea rcx, _opcode_0
+  call is_jmp
+  nop 
+
+  lea rcx, _opcode_1
+  call is_jmp
+  nop 
+
+  lea rcx, _opcode_2
+  call is_jmp
+  nop 
+
+  lea rcx, _opcode_3
+  call is_jmp
+  nop 
+
+  lea rcx, _opcode_4
+  call is_jmp
+  nop 
+
+  _opcode_0:
+    jmp _ExitProcess
+  _opcode_1:
+    je  _ExitProcess
+  _opcode_2:
+    nop
+  _opcode_3:
+    allbits db 0FFh
+  _opcode_4:
+    jbe _ExitProcess
+
+
   _ExitProcess:
     mov r8, qword ptr gs:[60h]    ;PEB
     mov r8, qword ptr[r8+18h]     ;PEB->Ldr (_PEB_LDR_DATA)
