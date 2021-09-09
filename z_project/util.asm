@@ -121,28 +121,55 @@ utilDecode proc
 
 utilDecode endp
 
+;utilDecode_full
+;            rcx - lpBuffer
+;            rdx - qwLength
+;            r8  - qwHash
 utilDecode_full proc
 
-  ; loop over buffer
-  ;   loop over 0-255
-  ;     encode each char checking output against lpBuffer
-  ;     if an encoded match is found the plaintext is simply the char
-  ;     passed to encode
-
+  push rbx
   push rcx
   push rdx
   push r8
   push r9
   push r10
+  push r11
 
+  ; lpBuffer
+  mov r10, rcx
 
+  ; end of lpBuffer
+  lea r11, [rcx+rdx]
+
+  _Loop:
+    ; load byte from lpBuffer to al
+    mov rbx, byte ptr[r10]
+
+    ; r9 is the 0->255 iterator
+    xor r9, r9
+    _Inner_Loop:
+      mov rax, r9           ; set rax to the byte value to encode
+      inc rax               ; inc to prevent multiplying the seed by 0
+      mov r9, rax           ; update the iterator (for next cycle)
+      imul r8               ; qwSeed * lpBuffer[x]
+      mov rcx, rax
+      call utilExplodeSeed 
+      cmp al, bl            ; if the encoded byte matches the lpBuffer[x]
+    jne _Inner_Loop
+
+    mov byte ptr[r10], r9b  ; write the iterator to lpBuffer[x]
+    inc r10                 ; increment lpBuffer
+    cmp r10, r11            ; end of buffer/
+  jne _Loop
+
+  pop r11
   pop r10
   pop r9
   pop r8
   pop rdx
   pop rcx
+  pop rbx
   ret
-
 
 utilDecode_full endp
 

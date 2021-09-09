@@ -7,7 +7,7 @@
 
 ### util.asm
  - [ ] bijection procedure to find seeds
- - [ ] convert az.c (need to develop utilDecode & utilDecode_full)
+ - [ ] convert az.c (need to develop (and test) utilDecode & utilDecode_full)
 
 ### func.asm
 
