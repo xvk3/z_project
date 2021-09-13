@@ -143,11 +143,13 @@ utilDecode_full proc
 
   _Loop:
     ; load byte from lpBuffer to al
-    mov rbx, byte ptr[r10]
+    movzx rbx, byte ptr[r10]
 
     ; r9 is the 0->255 iterator
     xor r9, r9
     _Inner_Loop:
+      cmp r9, 0FFh          ; check the iterator
+  jae _Bail
       mov rax, r9           ; set rax to the byte value to encode
       inc rax               ; inc to prevent multiplying the seed by 0
       mov r9, rax           ; update the iterator (for next cycle)
@@ -159,8 +161,10 @@ utilDecode_full proc
 
     mov byte ptr[r10], r9b  ; write the iterator to lpBuffer[x]
     inc r10                 ; increment lpBuffer
-    cmp r10, r11            ; end of buffer/
+    cmp r10, r11            ; end of buffer?
   jne _Loop
+
+  _Bail:
 
   pop r11
   pop r10

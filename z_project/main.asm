@@ -6,6 +6,10 @@ EXTERN funcLookupFunctionByHash:proc
 EXTERN utilRand:proc
 
 EXTERN utilEncode:proc
+EXTERN utilDecode:proc
+
+EXTERN utilEncode_full:proc
+EXTERN utilDecode_full:proc
 
 EXTERN dbgInitialise:proc
 
@@ -49,15 +53,29 @@ main proc
   test rax, rax
   jz _ExitProcess
 
-  ;update MainMemory->genKernel32Base
-  mov qword ptr[rax+genKernel32Base], r15
-  mov r15, rax
+  ;update rMM->K32
+  mov qword ptr[rax+K32], rMM
+  mov rMM, rax
+
+  ;LoadLibraryA
+  mov rdx, qword ptr[rMM+K32]
+  mov rcx, 0b9a3b50901ed9addh   ;qwHash
+  call funcLookupFunctionByHash ;
+  sub rsp, 20h
+  lea rcx, WININET_DLL          ;lpLibFileName
+  call rax                      ;LoadLibraryA
+  add rsp, 20h
+  test rax, rax
+  jz _ExitProcess
+  
+  ;update rMM->WININET
+  mov qword ptr[rMM+WININET], rax
 
   call dbgInitialise
   nop
 
   ;WriteConsoleA
-  mov rdx, qword ptr[mainMemoryBase+genKernel32Base]
+  mov rdx, qword ptr[rMM+K32]
   mov rcx, 85caeb217199930eh    ;qwHash
   call funcLookupFunctionByHash ;
   sub rsp, 30h
@@ -65,7 +83,7 @@ main proc
   xor r9, r9                    ;lpNumberOfCharsWritten
   mov r8, 26                    ;nNumberOfCharsToWrite
   lea rdx, some_string          ;lpBuffer
-  mov rcx, qword ptr[mainMemoryBase+dbgOutputHandle]
+  mov rcx, qword ptr[rMM+K32]
   call rax                      ;WriteConsoleA
   add rsp, 30h
 
@@ -76,7 +94,7 @@ main proc
   call utilEncode
 
   ;WriteConsoleA
-  mov rdx, qword ptr[mainMemoryBase+genKernel32Base]
+  mov rdx, qword ptr[rMM+K32]
   mov rcx, 85caeb217199930eh    ;qwHash
   call funcLookupFunctionByHash ;
   sub rsp, 30h
@@ -84,43 +102,11 @@ main proc
   xor r9, r9                    ;lpNumberOfCharsWritten
   mov r8, 28                    ;nNumberOfCharsToWrite
   lea rdx, some_string_nl       ;lpBuffer
-  mov rcx, qword ptr[mainMemoryBase+dbgOutputHandle]
+  mov rcx, qword ptr[rMM+dbgOutputHandle]
   call rax                      ;WriteConsoleA
   add rsp, 30h
 
-
-  ;test is_jmp
-  lea rcx, _opcode_0
-  call is_jmp
-  nop 
-
-  lea rcx, _opcode_1
-  call is_jmp
-  nop 
-
-  lea rcx, _opcode_2
-  call is_jmp
-  nop 
-
-  lea rcx, _opcode_3
-  call is_jmp
-  nop 
-
-  lea rcx, _opcode_4
-  call is_jmp
-  nop 
-
-  _opcode_0:
-    jmp _ExitProcess
-  _opcode_1:
-    je  _ExitProcess
-  _opcode_2:
-    nop
-  _opcode_3:
-    allbits db 0FFh
-  _opcode_4:
-    jbe _ExitProcess
-
+  call mainBijection
 
   _ExitProcess:
     mov r8, qword ptr gs:[60h]    ;PEB
@@ -137,7 +123,77 @@ main proc
 
   some_string_nl db 0Dh, 0Ah
   some_string db "ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
+  WININET_DLL db "wininet.dll",0
 
 main endp
+
+;mainBijection
+mainBijection proc
+
+  ; add pushes
+
+
+  ; starting qwSeed
+  mov r8, 0ff73d309bc332201h
+
+  _Start:
+
+	; increments qwSeed
+	inc r8
+
+    ; initialises lpBuffer to contain 00 -> FF
+    xor rax, rax
+    lea rcx, lpBuffer0
+	lea rbx, lpChecks0
+    _SetupBuffer:
+      mov byte ptr[rcx+rax], al
+      inc rax
+      cmp rax, 100h
+    jne _SetupBuffer
+
+	; initialised lpChecks to contain 00
+	xor rax, rax
+	_SetupChecksBuffer:
+	  mov byte ptr[rbx+rax], 00h
+      inc rax
+      cmp rax, 100h
+    jne _SetupChecksBuffer
+
+    ; encode lpBuffer
+    lea rcx, lpBuffer0
+    mov rdx, 256
+    call utilEncode_full
+
+    ; check for duplicates
+	xor rax, rax
+	_CheckBuffer:
+      movzx rdx, byte ptr[rcx+rax]
+	  cmp byte ptr[rbx+rdx], 00h
+	  jne _Start
+	  inc byte ptr[rbx+rdx]
+	  inc rax
+      cmp rax, 100h
+	jne _CheckBuffer
+
+    ; found a suitable hash (r8)
+
+
+  nop
+
+  jmp _Start
+
+  ret
+
+  lpBuffer0 db 256 DUP (?)
+
+  lpChecks0 db 256 DUP (0)
+
+mainBijection endp
+
+;mainDownloadFile
+mainDownloadFile proc
+
+
+mainDownloadFile endp
 
 END

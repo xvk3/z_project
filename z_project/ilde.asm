@@ -1,5 +1,87 @@
 ilde segment read write execute
 
+
+;is_jmp_tester
+is_jmp_tester proc
+
+  _Start:
+
+  xor rcx, rcx
+  call is_jmp
+  nop
+
+  lea rcx, _0
+  call is_jmp
+  nop
+
+  lea rcx, _1
+  call is_jmp
+  nop
+
+  lea rcx, _2
+  call is_jmp
+  nop
+
+  lea rcx, _3
+  call is_jmp
+  nop
+
+  lea rcx, _4
+  call is_jmp
+  nop
+
+  lea rcx, _5
+  call is_jmp
+  nop
+
+  lea rcx, _6
+  call is_jmp
+  nop
+
+  lea rcx, _7
+  call is_jmp
+  nop
+
+  lea rcx, _8
+  call is_jmp
+  nop
+
+  lea rcx, _9
+  call is_jmp
+  nop
+
+  lea rcx, _10
+  call is_jmp
+  nop
+
+  ret
+
+  _0:
+    jmp _Start
+  _1:
+    db 0EEh, 24h
+  _2:
+    db 70h, 1Ah
+  _3:
+    db 77h
+  _4:
+    db 00h
+  _5:
+    db 07h
+  _6:
+    jb _Start
+  _7:
+    jg _Start
+  _8:
+    jmp _Start
+  _9:
+    jl _Start
+  _10:
+    jmp _Start
+
+is_jmp_tester endp
+
+
 ;is_jmp - returns true if the lpOpcode is a jmp (je/jz/ja/jbe etc) instruction
 ;            rcx - lpOpcode
 is_jmp proc
