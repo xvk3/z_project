@@ -130,53 +130,53 @@ main endp
 ;mainBijection
 mainBijection proc
 
-  ; add pushes
+  ;add pushes
 
-
-  ; starting qwSeed
+  ;starting qwSeed
   mov r8, 0ff73d309bc332201h
 
   _Start:
 
-	; increments qwSeed
-	inc r8
+    ;increments qwSeed
+    inc r8
 
-    ; initialises lpBuffer to contain 00 -> FF
+    ;initialises lpBuffer to contain 00 -> FF
     xor rax, rax
     lea rcx, lpBuffer0
-	lea rbx, lpChecks0
+	  lea rbx, lpChecks0
     _SetupBuffer:
       mov byte ptr[rcx+rax], al
       inc rax
       cmp rax, 100h
     jne _SetupBuffer
 
-	; initialised lpChecks to contain 00
-	xor rax, rax
-	_SetupChecksBuffer:
-	  mov byte ptr[rbx+rax], 00h
+	  ;initialised lpChecks to contain 00
+    xor rax, rax
+    _SetupChecksBuffer:
+    mov byte ptr[rbx+rax], 00h
       inc rax
       cmp rax, 100h
     jne _SetupChecksBuffer
 
-    ; encode lpBuffer
+    ;encode lpBuffer
     lea rcx, lpBuffer0
     mov rdx, 256
     call utilEncode_full
 
-    ; check for duplicates
-	xor rax, rax
-	_CheckBuffer:
+    ;check for duplicates
+    xor rax, rax
+    _CheckBuffer:
       movzx rdx, byte ptr[rcx+rax]
-	  cmp byte ptr[rbx+rdx], 00h
-	  jne _Start
-	  inc byte ptr[rbx+rdx]
-	  inc rax
+      cmp byte ptr[rbx+rdx], 00h
+      jne _Start
+      inc byte ptr[rbx+rdx]
+      inc rax
       cmp rax, 100h
-	jne _CheckBuffer
+    jne _CheckBuffer
 
-    ; found a suitable hash (r8)
-
+  ;buffer check passed (no duplicates)
+  ; r8 = bijection seed
+  ;TODO: write seeds to file/stdout
 
   nop
 
@@ -189,6 +189,7 @@ mainBijection proc
   lpChecks0 db 256 DUP (0)
 
 mainBijection endp
+
 
 ;mainDownloadFile
 mainDownloadFile proc
