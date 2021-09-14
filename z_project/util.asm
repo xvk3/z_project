@@ -1,4 +1,4 @@
-uril segment read execute
+util segment read execute
 
 ;utilHash
 ;          rcx - null terminated string
