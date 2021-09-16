@@ -86,25 +86,43 @@ is_jmp_tester endp
 ;            rcx - lpOpcode
 is_jmp proc
 
-;00007FF6A3F16000 EB 24                jmp         lde (07FF6A3F16026h)  
-;00007FF6A3F16002 70 22                jo          lde (07FF6A3F16026h)  
-;00007FF6A3F16004 71 20                jno         lde (07FF6A3F16026h)  
-;00007FF6A3F16006 72 1E                jb          lde (07FF6A3F16026h)  
-;00007FF6A3F16008 73 1C                jae         lde (07FF6A3F16026h)  
-;00007FF6A3F1600A 74 1A                je          lde (07FF6A3F16026h)  
-;00007FF6A3F1600C 75 18                jne         lde (07FF6A3F16026h)  
-;00007FF6A3F1600E 76 16                jbe         lde (07FF6A3F16026h)  
-;00007FF6A3F16010 77 14                ja          lde (07FF6A3F16026h)  
-;00007FF6A3F16012 78 12                js          lde (07FF6A3F16026h)  
-;00007FF6A3F16014 79 10                jns         lde (07FF6A3F16026h)  
-;00007FF6A3F16016 7A 0E                jp          lde (07FF6A3F16026h)  
-;00007FF6A3F16018 7B 0C                jnp         lde (07FF6A3F16026h)  
-;00007FF6A3F1601A 7A 0A                jp          lde (07FF6A3F16026h)  
-;00007FF6A3F1601C 7B 08                jnp         lde (07FF6A3F16026h)  
-;00007FF6A3F1601E 7C 06                jl          lde (07FF6A3F16026h)  
-;00007FF6A3F16020 7D 04                jge         lde (07FF6A3F16026h)  
-;00007FF6A3F16022 7E 02                jle         lde (07FF6A3F16026h)  
-;00007FF6A3F16024 7F 00                jg          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16000 EB 24                jmp         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16002 70 22                jo          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16004 71 20                jno         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16006 72 1E                jb          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16008 73 1C                jae         lde (07FF6A3F16026h)  
+  ;00007FF6A3F1600A 74 1A                je          lde (07FF6A3F16026h)  
+  ;00007FF6A3F1600C 75 18                jne         lde (07FF6A3F16026h)  
+  ;00007FF6A3F1600E 76 16                jbe         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16010 77 14                ja          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16012 78 12                js          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16014 79 10                jns         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16016 7A 0E                jp          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16018 7B 0C                jnp         lde (07FF6A3F16026h)  
+  ;00007FF6A3F1601A 7A 0A                jp          lde (07FF6A3F16026h)  
+  ;00007FF6A3F1601C 7B 08                jnp         lde (07FF6A3F16026h)  
+  ;00007FF6A3F1601E 7C 06                jl          lde (07FF6A3F16026h)  
+  ;00007FF6A3F16020 7D 04                jge         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16022 7E 02                jle         lde (07FF6A3F16026h)  
+  ;00007FF6A3F16024 7F 00                jg          lde (07FF6A3F16026h)  
+
+  ; TODO handle jrcxz and loop instructions
+  ; -----
+  ; e0 00    - loopne 02h
+  ; e1 00    - loope  04h
+  ; e2 00    - loop   06h
+  ; e3 00    - jrcxz  08h
+  ; 67 e0 00 - addr32 loopne 02h
+  ; 67 e1 00 - addr32 loope  04h
+  ; 67 e2 00 - addr32 loop   06h
+  ; 67 e3 00 - addr32 jrcxz  08h
+
+  ; TODO handle alternate non-conditional jmp
+  ; -----
+  ; e9 00 00 00 00
+  ;    ^^^^^^^^^^^ rel32 offset to RIP "jmp near" 
+  ; eb 00
+  ;    ^^          rel08 offset to RIP "jmp short"
 
   ; checks for jmp opcode
   mov al, byte ptr[rcx]
@@ -127,35 +145,242 @@ is_jmp proc
 
 is_jmp endp
 
+;is_call_tester
+is_call_tester proc
+
+  lea rcx, _0
+  call is_call
+  nop
+
+  lea rcx, _1
+  call is_call
+  nop
+
+  lea rcx, _2
+  call is_call
+  nop
+
+  lea rcx, _3
+  call is_call
+  nop
+
+  lea rcx, _4
+  call is_call
+  nop
+
+  lea rcx, _5
+  call is_call
+  nop
+
+  lea rcx, _6
+  call is_call
+  nop
+
+  lea rcx, _7
+  call is_call
+  nop
+
+  lea rcx, _8
+  call is_call
+  nop
+
+  lea rcx, _9
+  call is_call
+  nop
+
+  lea rcx, _10
+  call is_call
+  nop
+
+  ret
+
+  _0:
+    call rax
+  _1:
+    db 41h, 0ffh, 0d0h
+  _2:
+    db 0e8h, 00h, 00h, 00h, 00h
+  _3:
+    call r15
+  _4:
+    call _0
+  _5:
+    call rbp
+  _6:
+    db 41h, 00h
+  _7:
+    db 41h, 41h
+  _8:
+    call rsp
+  _9:
+    db 0ffh, 0d6h
+  _10:
+    db 0ffh, 0cfh
+
+is_call_tester endp
+
 ;is_call - return true if lpOpcode is a call instruction
 ;            rcx - lpOpcode
 is_call proc
 
-  ; options for call opcodes are: 0E8h 0FFh 09Ah
+  push rcx
+
+  ; if lpOpcode[0] == e8h then it's a jump instruction
   mov al, byte ptr[rcx]
-  cmp al, 0E8h
+  cmp al, 0e8h
   je _Is_Call
 
-  cmp al, 9Ah
-  je _Is_Call
+  ; if lpOpcode[0] != 41h (REX.W prefix) then check same byte for ffh
+  cmp al, 41h
+  jne _Check_ff
 
+  ; if lpOpcode[0] == 41h then increment lpOpcode (rcx) and check for ffh
+  inc rcx
+  mov al, byte ptr[rcx]
+
+  ; at this point we are checking either:
+  ;  1. lpOpcode[0] (where 41h is not detected)
+  ;  2. lpOpcode[1] (in the case where 41h is detected)
+  _Check_ff:
   cmp al, 0FFh
-  je _Is_Call
+  jne _Not_Call
 
-  xor rax, rax
-  ret
+  ; at this point we are checking either:
+  ; 1. lpOpcode[1] (where 41h is not detected - but ffh is)
+  ; 2. lpOpcode[2] (where 41h and ffh are present)
+  movzx al, byte ptr[rcx+01h]
+  and al, 11010000b
+  sub al, 0D0h
+  jz _Is_Call
+
+  _Not_Call:
+    pop rcx
+    xor rax, rax
+    ret
 
   _Is_Call:
+    pop rcx
     xor rax, rax
     inc rax
     ret
 
 is_call endp
 
-;is_push_ret proc - returns true if lpOpcode is 
+;is_push_ret proc - returns true if lpOpcode is "push reg64; ret" 
 ;            rcx - lpOpcode
+is_push_ret_tester proc
+
+  lea rcx, _0
+  call is_push_ret
+  nop
+
+  lea rcx, _1
+  call is_push_ret
+  nop
+
+  lea rcx, _2
+  call is_push_ret
+  nop
+
+  lea rcx, _3
+  call is_push_ret
+  nop
+
+  lea rcx, _4
+  call is_push_ret
+  nop
+
+  lea rcx, _5
+  call is_push_ret
+  nop
+
+  lea rcx, _6
+  call is_push_ret
+  nop
+
+  lea rcx, _7
+  call is_push_ret
+  nop
+
+  lea rcx, _8
+  call is_push_ret
+  nop
+
+  lea rcx, _9
+  call is_push_ret
+  nop
+
+  lea rcx, _10
+  call is_push_ret
+  nop
+
+  _0:
+    push rax
+    ret
+  _1:
+    push rbx
+    ret
+  _2:
+    push rcx
+    ret
+  _3:
+    push rdx
+    ret
+  _4:
+    push r8
+    ret
+  _5:
+    push r9
+    ret
+  _6:
+    push 00h
+    ret
+  _7:
+    push r15
+    ret
+  _8:
+    db 41h, 50h, 0c3h
+  _9:
+    db 6ah, 00h, 00h, 00h, 00h,
+    ret
+  _10:
+    db 6ah, 00h
+    ret
+
+is_push_ret_tester endp
+
+
 is_push_ret proc
 
+  push rcx
+
+  ; do i need to detect something like "push ax; push cx, push dx; push bx"?
+  
+  mov al, byte ptr[rcx]
+
+  ; push rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi
+  sub al, 50h
+  cmp al, 07h
+  jle _Check_Ret
+
+  ; push r8, r9, r10, r11, r12, r13, r14, r15
+  cmp al, 41h
+  
+
+
+  _Check_Ret:
+    cmp byte ptr[rcx+01h], 0c3h
+  je _Is_Push_Ret
+  
+  pop rcx
+  xor rax, rax
+  ret
+
+  _Is_Push_Ret:
+    pop rcx
+    xor rax, rax
+    inc rax
+    ret
 
 is_push_ret endp
 
