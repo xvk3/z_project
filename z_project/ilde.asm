@@ -1,6 +1,5 @@
 ilde segment read write execute
 
-
 ;is_jmp_tester
 is_jmp_tester proc
 
@@ -125,11 +124,11 @@ is_jmp proc
   ;    ^^          rel08 offset to RIP "jmp short"
 
   ; checks for jmp opcode
-  mov al, byte ptr[rcx]
+  movzx al, byte ptr[rcx]
   cmp al, 0EBh
   je _Is_Jump
 
-  ; the following instruction normalised all jmp varients (70h -> 7Fh) to be 70h
+  ; the following instruction normalises all jmp variants (70h -> 7Fh) to be 70h
   and al, 11110000b
   ; 70h = 01110000b
   sub al, 70h
@@ -226,7 +225,7 @@ is_call proc
   push rcx
 
   ; if lpOpcode[0] == e8h then it's a jump instruction
-  mov al, byte ptr[rcx]
+  movzx al, byte ptr[rcx]
   cmp al, 0e8h
   je _Is_Call
 
@@ -242,7 +241,7 @@ is_call proc
   ;  1. lpOpcode[0] (where 41h is not detected)
   ;  2. lpOpcode[1] (in the case where 41h is detected)
   _Check_ff:
-  cmp al, 0FFh
+    cmp al, 0FFh
   jne _Not_Call
 
   ; at this point we are checking either:
@@ -266,8 +265,7 @@ is_call proc
 
 is_call endp
 
-;is_push_ret proc - returns true if lpOpcode is "push reg64; ret" 
-;            rcx - lpOpcode
+;is_push_ret_tester
 is_push_ret_tester proc
 
   lea rcx, _0
@@ -349,24 +347,33 @@ is_push_ret_tester proc
 
 is_push_ret_tester endp
 
-
+;is_push_ret
+;            rcx - lpOpcode
 is_push_ret proc
 
   push rcx
 
   ; do i need to detect something like "push ax; push cx, push dx; push bx"?
-  
+  ; the first 'mov al...' should be a 'movzx'
+  movzx al, byte ptr[rcx]
+
+  ; if lpOpcode[0] != 41h (REX.W prefix) then check SAME byte for 'push'
+  cmp al, 41h
+  jne _Check_Push
+
+  ; if lpOpcode[0] == 41h then increment lpOpcode (rcx) and check for 'push'
+  inc rcx
   mov al, byte ptr[rcx]
 
-  ; push rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi
-  sub al, 50h
-  cmp al, 07h
-  jle _Check_Ret
+  ; normalise all push variants (50h -> 57h) to be 50h
+  _Check_Push:
+    and al, 0101000b
+    sub al, 50h
+  jz _Check_Ret
 
-  ; push r8, r9, r10, r11, r12, r13, r14, r15
-  cmp al, 41h
-  
-
+  pop rcx
+  xor rax, rax
+  ret
 
   _Check_Ret:
     cmp byte ptr[rcx+01h], 0c3h
